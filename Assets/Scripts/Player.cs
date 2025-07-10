@@ -70,8 +70,8 @@ public class Player : MonoBehaviour
     {
         if(collision.gameObject.CompareTag("Ground"))
         {
-            isGround = true; // Set isGround to true when the player collides with the ground
-            animator.SetBool("Jump",false);
+            isGround = true; // Set isGround to true when the player collides with the grounds 
+            animator.SetBool("Jump",false);  
         }
     }
 }
