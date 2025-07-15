@@ -1,10 +1,12 @@
 using System.IO;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-   
+    public int maxHealth = 100;
+    public Text health;
     private float movement;
     public float moveSpeed = 5f; // Speed at which the player moves
     private bool facingRight = true; // Track the direction the player is facing
@@ -12,7 +14,9 @@ public class Player : MonoBehaviour
     public float jumpHeight = 5f; // Height of the jump
     public bool isGround = true; // Track if the player is on the ground
     public Animator animator; // Reference to the Animator component for animations
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public Transform attackPoint;
+    public float attackRadius = 1f;
+    public LayerMask enemyLayer; // Layer mask to identify enemies
     void Start()
     {
 
@@ -21,6 +25,14 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (maxHealth <= 0)
+        {
+            Die(); // Call the Die method if health is zero or below
+        }
+
+        health.text = maxHealth.ToString();
+
         movement = Input.GetAxis("Horizontal"); // Get the horizontal input axis
         if (movement < 0f && facingRight)
         {
@@ -73,5 +85,49 @@ public class Player : MonoBehaviour
             isGround = true; // Set isGround to true when the player collides with the grounds 
             animator.SetBool("Jump",false);  
         }
+    }
+
+    public void Attack()
+    {
+        Collider2D collInfo = Physics2D.OverlapCircle(
+            attackPoint.position,
+            attackRadius,
+            enemyLayer
+        );
+
+        if (collInfo)
+        {
+            PatrolEnemy enemy = collInfo.GetComponent<PatrolEnemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(5); // Call the TakeDamage method on the enemy with a damage value
+            }
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        maxHealth -= damage; // Reduce the player's health by the damage amount
+        if (maxHealth <= 0)
+        {
+            Die(); // Call the Die method if health is zero or below
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (attackPoint == null)
+        {
+            return;
+        }
+        Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
+    }
+
+    public void Die()
+    {
+        // Handle player death (e.g., play death animation, respawn, etc.)
+        Debug.Log("Player has died");
+        FindObjectOfType<GameManager>().isGameActive = false; // Set the game over state
+        Destroy(this.gameObject); // Destroy the player game object
     }
 }
