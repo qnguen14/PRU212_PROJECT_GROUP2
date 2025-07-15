@@ -118,7 +118,7 @@ public class PatrolEnemy : MonoBehaviour
     public void Die()
     {
         Debug.Log("Enemy has died");
-        Destroy(this.gameObject); // Destroy the enemy game object
+        Destroy(this.gameObject, 1f); // Destroy the enemy game object
     }
 
 

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+    public int currentCoin = 0; // Track the number of coins collected
+    public Text coinText; // UI Text to display the number of coins collected
     public int maxHealth = 100;
     public Text health;
     private float movement;
@@ -17,15 +19,15 @@ public class Player : MonoBehaviour
     public Transform attackPoint;
     public float attackRadius = 1f;
     public LayerMask enemyLayer; // Layer mask to identify enemies
+
     void Start()
     {
-
+        UpdateCoinUI(); // Initialize the coin UI
     }
 
     // Update is called once per frame
     void Update()
     {
-
         if (maxHealth <= 0)
         {
             Die(); // Call the Die method if health is zero or below
@@ -39,18 +41,17 @@ public class Player : MonoBehaviour
             transform.eulerAngles = new Vector3(0f, -180f, 0f); // Flip the player to face left
             facingRight = false; // Update the facing direction
         }
-        else if (movement > 0f && facingRight==false)
+        else if (movement > 0f && facingRight == false)
         {
             transform.eulerAngles = new Vector3(0f, 0f, 0f); // Flip the player to face right
             facingRight = true; // Update the facing direction
-
         }
 
         if (Input.GetKey(KeyCode.Space) && isGround)
         {
             Jump(); // Call the Jump method when the space key is pressed
             isGround = false; // Set isGround to false to prevent double jumping
-            animator.SetBool("Jump",true);
+            animator.SetBool("Jump", true);
         }
 
         if (Mathf.Abs(movement) > .1f)
@@ -67,23 +68,29 @@ public class Player : MonoBehaviour
             animator.SetTrigger("Attack"); // Trigger the attack animation when the left mouse button is clicked
         }
     }
+
     private void FixedUpdate()
     {
         // Move the player based on the input
-        transform.position += new Vector3(movement,0f,0f) *Time.fixedDeltaTime * moveSpeed;
+        transform.position += new Vector3(movement, 0f, 0f) * Time.fixedDeltaTime * moveSpeed;
     }
 
     void Jump()
     {
-        rb.AddForce(new Vector2(0f,jumpHeight) , ForceMode2D.Impulse);
+        rb.AddForce(new Vector2(0f, jumpHeight), ForceMode2D.Impulse);
+    }
+
+    void UpdateCoinUI()
+    {
+        coinText.text = currentCoin.ToString(); // Update the coin text UI
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            isGround = true; // Set isGround to true when the player collides with the grounds 
-            animator.SetBool("Jump",false);  
+            isGround = true; // Set isGround to true when the player collides with the grounds
+            animator.SetBool("Jump", false);
         }
     }
 
@@ -123,11 +130,36 @@ public class Player : MonoBehaviour
         Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "Coin")
+        {
+            // Check if the coin has already been collected
+            if (other.gameObject.activeInHierarchy)
+            {
+                currentCoin++; // Increment the coin count
+                UpdateCoinUI(); // Update the UI immediately
+                other
+                    .gameObject.transform.GetChild(0)
+                    .GetComponent<Animator>()
+                    .SetTrigger("Collected"); // Trigger the collect animation
+                // other.gameObject.SetActive(false); // Immediately deactivate to prevent double collection
+                Destroy(other.gameObject, 1f); // Destroy the coin game object
+            }
+        }
+
+        if (other.gameObject.tag == "Victory")
+        {
+            Debug.Log("Victory! You have collected all coins.");
+            FindFirstObjectByType<SceneManagement>().LoadLevel(); // Load the next level
+        }
+    }
+
     public void Die()
     {
         // Handle player death (e.g., play death animation, respawn, etc.)
         Debug.Log("Player has died");
-        FindObjectOfType<GameManager>().isGameActive = false; // Set the game over state
-        Destroy(this.gameObject); // Destroy the player game object
+        FindFirstObjectByType<GameManager>().isGameActive = false; // Set the game over state
+        Destroy(this.gameObject, 1f); // Destroy the player game object
     }
 }
