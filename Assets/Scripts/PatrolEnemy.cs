@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class PatrolEnemy : MonoBehaviour
 {
+    public int maxHealth = 20;
     public bool facingLeft = true;
     public float moveSpeed = 2f;
     public Transform checkPoint;
@@ -26,6 +27,18 @@ public class PatrolEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (FindAnyObjectByType<GameManager>().isGameActive == false)
+        {
+            return; // Exit the Update method if the game is paused
+        }
+
+
+        if (maxHealth <= 0)
+        {
+            Die(); // Call the Die method if health is zero or below
+        }
+
+
         if (Vector2.Distance(transform.position, player.position) <= attackRange)
         {
             inRange = true;
@@ -82,7 +95,30 @@ public class PatrolEnemy : MonoBehaviour
     }
     public void Attack()
     {
-       Collider2D collInfo = Physics2D.OverlapCircle (attackPoint.position, attackRadius, attackLayer);
+        Collider2D collInfo = Physics2D.OverlapCircle(attackPoint.position, attackRadius, attackLayer);
+
+        if (collInfo)
+        {
+            if (collInfo.gameObject.GetComponent<Player>() != null)
+            {
+                collInfo.gameObject.GetComponent<Player>().TakeDamage(8); // Gọi phương thức TakeDamage trên đối tượng player
+            }
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        maxHealth -= damage; // Reduce the player's health by the damage amount
+        if (maxHealth <= 0)
+        {
+            Die(); // Call the Die method if health is zero or below
+        }
+    }
+
+    public void Die()
+    {
+        Debug.Log("Enemy has died");
+        Destroy(this.gameObject, 1f); // Destroy the enemy game object
     }
 
 
