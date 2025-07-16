@@ -19,10 +19,26 @@ public class Player : MonoBehaviour
     public Transform attackPoint;
     public float attackRadius = 1f;
     public LayerMask enemyLayer; // Layer mask to identify enemies
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip swordSlashSound;
+    [SerializeField] private float swordSlashVolume = 0.1f; // Volume control for sword slash
+    [SerializeField] private AudioClip coinCollectSound;
+    [SerializeField] private AudioClip jumpSound; // Jump sound effect
+    [SerializeField] private AudioClip[] footstepSounds; // Array for dirt footstep sounds
+    
+    private float footstepTimer = 0f; // Timer for footstep sounds
+    private float footstepInterval = 0.3f; // Time between footstep sounds
 
     void Start()
     {
         UpdateCoinUI(); // Initialize the coin UI
+
+        // Get or add AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     // Update is called once per frame
@@ -35,37 +51,62 @@ public class Player : MonoBehaviour
 
         health.text = maxHealth.ToString();
 
-        movement = Input.GetAxis("Horizontal"); // Get the horizontal input axis
-        if (movement < 0f && facingRight)
+        // Move left with LeftArrow, right with RightArrow
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
-            transform.eulerAngles = new Vector3(0f, -180f, 0f); // Flip the player to face left
-            facingRight = false; // Update the facing direction
+            movement = -1f;
+            if (facingRight)
+            {
+                transform.eulerAngles = new Vector3(0f, -180f, 0f);
+                facingRight = false;
+            }
         }
-        else if (movement > 0f && facingRight == false)
+        else if (Input.GetKey(KeyCode.RightArrow))
         {
-            transform.eulerAngles = new Vector3(0f, 0f, 0f); // Flip the player to face right
-            facingRight = true; // Update the facing direction
+            movement = 1f;
+            if (!facingRight)
+            {
+                transform.eulerAngles = new Vector3(0f, 0f, 0f);
+                facingRight = true;
+            }
+        }
+        else
+        {
+            movement = 0f;
         }
 
-        if (Input.GetKey(KeyCode.Space) && isGround)
+        if (Input.GetKey(KeyCode.X) && isGround)
         {
-            Jump(); // Call the Jump method when the space key is pressed
-            isGround = false; // Set isGround to false to prevent double jumping
+            Jump();
+            isGround = false;
             animator.SetBool("Jump", true);
         }
 
         if (Mathf.Abs(movement) > .1f)
         {
-            animator.SetFloat("Run", 1f); // Set the running animation if the player is moving right
+            animator.SetFloat("Run", 1f);
+            
+            // Add footstep sounds when running on the ground
+            if (isGround)
+            {
+                footstepTimer += Time.deltaTime;
+                if (footstepTimer >= footstepInterval)
+                {
+                    PlayRandomFootstepSound();
+                    footstepTimer = 0f;
+                }
+            }
         }
-        else if (movement < .1f)
+        else
         {
-            animator.SetFloat("Run", 0f); // Set the idle animation if the player is not moving
+            animator.SetFloat("Run", 0f);
+            footstepTimer = 0; // Reset timer when not moving
         }
 
-        if (Input.GetMouseButtonDown(0))
+        // Attack with "C" key
+        if (Input.GetKeyDown(KeyCode.C))
         {
-            animator.SetTrigger("Attack"); // Trigger the attack animation when the left mouse button is clicked
+            animator.SetTrigger("Attack");
         }
     }
 
@@ -77,6 +118,12 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
+        // Play jump sound
+        if (jumpSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(jumpSound);
+        }
+        
         rb.AddForce(new Vector2(0f, jumpHeight), ForceMode2D.Impulse);
     }
 
@@ -96,6 +143,12 @@ public class Player : MonoBehaviour
 
     public void Attack()
     {
+        // Play sword slash sound
+        if (swordSlashSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(swordSlashSound, swordSlashVolume); // Use the adjustable volume variable
+        }
+
         Collider2D collInfo = Physics2D.OverlapCircle(
             attackPoint.position,
             attackRadius,
@@ -137,6 +190,12 @@ public class Player : MonoBehaviour
             // Check if the coin has already been collected
             if (other.gameObject.activeInHierarchy)
             {
+                // Play coin collect sound
+                if (coinCollectSound != null && audioSource != null)
+                {
+                    audioSource.PlayOneShot(coinCollectSound);
+                }
+
                 currentCoin++; // Increment the coin count
                 UpdateCoinUI(); // Update the UI immediately
                 other
@@ -161,5 +220,14 @@ public class Player : MonoBehaviour
         Debug.Log("Player has died");
         FindFirstObjectByType<GameManager>().isGameActive = false; // Set the game over state
         Destroy(this.gameObject, 1f); // Destroy the player game object
+    }
+
+    private void PlayRandomFootstepSound()
+    {
+        if (footstepSounds != null && footstepSounds.Length > 0 && audioSource != null)
+        {
+            int randomIndex = Random.Range(0, footstepSounds.Length);
+            audioSource.PlayOneShot(footstepSounds[randomIndex], 0.7f); // Lower volume for footsteps
+        }
     }
 }
