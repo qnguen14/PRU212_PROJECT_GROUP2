@@ -18,10 +18,19 @@ public class PatrolEnemy : MonoBehaviour
     public Transform attackPoint;
     public float attackRadius = 1f;
     public LayerMask attackLayer;
+    // Add audio source and clips
+    private AudioSource audioSource;
+    [SerializeField] private AudioClip hitSound;
+    [SerializeField] private AudioClip deathSound;
     // Start is called before the first frame update
     void Start()
     {
-
+        // Get or add AudioSource component
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     // Update is called once per frame
@@ -106,8 +115,15 @@ public class PatrolEnemy : MonoBehaviour
         }
     }
 
+    // Modified TakeDamage method to play hit sound
     public void TakeDamage(int damage)
     {
+        // Play hit sound
+        if (hitSound != null && audioSource != null && maxHealth > damage)
+        {
+            audioSource.PlayOneShot(hitSound);
+        }
+        
         maxHealth -= damage; // Reduce the player's health by the damage amount
         if (maxHealth <= 0)
         {
@@ -115,10 +131,18 @@ public class PatrolEnemy : MonoBehaviour
         }
     }
 
+    // Modified Die method to play death sound
     public void Die()
     {
         Debug.Log("Enemy has died");
-        Destroy(this.gameObject, 1f); // Destroy the enemy game object
+        
+        // Play death sound using GameManager
+        if (deathSound != null)
+        {
+            GameManager.instance.PlaySoundAtPosition(deathSound, transform.position);
+        }
+        
+        Destroy(this.gameObject); // Destroy the enemy game object
     }
 
 
