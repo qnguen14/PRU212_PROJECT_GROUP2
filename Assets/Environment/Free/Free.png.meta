@@ -116,12 +116,12 @@ TextureImporter:
       name: Free_0
       rect:
         serializedVersion: 2
-        x: 159
+        x: 649
         y: 0
-        width: 2034
+        width: 1544
         height: 401
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: ec02f75236661044dbecabb0a8353bb8
     internalID: 0
     vertices: []
     indices: 
