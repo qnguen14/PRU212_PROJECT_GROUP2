@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class MainMenu : MonoBehaviour
 {
     public GameObject instructionPanel;
+    public GameObject creditsPanel;
     private AudioSource audioSource;
 
     [SerializeField]
@@ -90,10 +91,22 @@ public class MainMenu : MonoBehaviour
         instructionPanel.SetActive(true);
     }
 
+    public void ShowCredits()
+    {
+        ButtonClickSound();
+        creditsPanel.SetActive(true);
+    }
+
     public void HideInstruction()
     {
         ButtonClickSound();
         instructionPanel.SetActive(false);
+    }
+
+    public void HideCredits()
+    {
+        ButtonClickSound();
+        creditsPanel.SetActive(false);
     }
 
     public void SetMusicVolume(float volume)

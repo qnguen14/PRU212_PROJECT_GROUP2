@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
     public float attackRadius = 1f;
     public LayerMask enemyLayer; // Layer mask to identify enemies
     private AudioSource audioSource;
+   
     [SerializeField] private AudioClip swordSlashSound;
     [SerializeField] private float swordSlashVolume = 0.1f; // Volume control for sword slash
     [SerializeField] private AudioClip coinCollectSound;
